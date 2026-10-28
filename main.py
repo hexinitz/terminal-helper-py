@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""One-shot terminal help: term_help.py <question words...>
-
-Sends the question to a single Ollama cloud model and streams back a short
-plain-text answer. No chat history, no extra dependencies.
-"""
 
 import json
 import os
@@ -19,8 +14,6 @@ TIMEOUT = 60
 ATTEMPTS = 2
 RETRY_CODES = {408, 429, 500, 502, 503, 504}
 
-# Low temperature + narrow sampling keeps answers factual and repeatable.
-# num_predict also covers the model's hidden reasoning, so don't set it too low.
 OPTIONS = {
     "temperature": 0.3,
     "top_p": 0.85,
@@ -86,7 +79,6 @@ def build_request(key, question):
     body = {
         "model": MODEL,
         "stream": True,
-        # gpt-oss can't switch reasoning off, only lower it; other models can.
         "think": "low" if MODEL.startswith("gpt-oss") else False,
         "options": OPTIONS,
         "messages": [
@@ -131,7 +123,7 @@ def pieces(req):
 def retryable(exc):
     if isinstance(exc, urllib.error.HTTPError):
         return exc.code in RETRY_CODES
-    return isinstance(exc, OSError)  # timeouts, dropped connections
+    return isinstance(exc, OSError)
 
 
 def explain(exc):
